@@ -336,6 +336,7 @@ build_router(SpecPath, SpecParser, Callback, RawStaticRoutes, SwaggerUI) ->
                         callback => Callback,
                         static_routes => StaticRoutes
                     }),
+                    file:write_file("router.erl", erl_prettypr:format(Router)),
                     case erf_router:load(Router) of
                         ok ->
                             {ok, RouterMod, Router};

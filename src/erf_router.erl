@@ -351,44 +351,84 @@ handle_ast(API, #{callback := Callback} = Opts) ->
                                         ]
                                     ),
                                     erl_syntax:clause(
-                                        [erl_syntax:tuple([
-                                            erl_syntax:atom('false'),
+                                        [
                                             erl_syntax:tuple([
+                                                erl_syntax:atom('false'),
                                                 erl_syntax:tuple([
-                                                    erl_syntax:variable('SchemaPath'),
-                                                    erl_syntax:variable('Description')
-                                                ]),
-                                                erl_syntax:variable('_ConditionIndex')
+                                                    erl_syntax:tuple([
+                                                        erl_syntax:variable('SchemaPath'),
+                                                        erl_syntax:variable('Description')
+                                                    ]),
+                                                    erl_syntax:variable('_ConditionIndex')
+                                                ])
                                             ])
-                                        ])],
+                                        ],
                                         none,
                                         [
                                             erl_syntax:tuple(
                                                 [
                                                     erl_syntax:integer(400),
                                                     erl_syntax:list([]),
-                                                    erl_syntax:map_expr([
-                                                        erl_syntax:map_field_assoc(
-                                                            erl_syntax:binary([
-                                                                erl_syntax:binary_field(
-                                                                    erl_syntax:string("schema_path")
-                                                                )
-                                                            ]),
+                                                    erl_syntax:application(
+                                                        erl_syntax:atom(erf_util),
+                                                        erl_syntax:atom(binarize_atoms),
+                                                        [
                                                             erl_syntax:application(
-                                                                erl_syntax:atom(erlang),
-                                                                erl_syntax:atom(atom_to_binary),
-                                                                [erl_syntax:variable('SchemaPath')]
+                                                                erl_syntax:atom(
+                                                                    erf_problem_details
+                                                                ),
+                                                                erl_syntax:atom(new),
+                                                                [
+                                                                    erl_syntax:binary([
+                                                                        erl_syntax:binary_field(
+                                                                            erl_syntax:string(
+                                                                                "Validation error"
+                                                                            )
+                                                                        )
+                                                                    ]),
+                                                                    erl_syntax:integer(400),
+                                                                    erl_syntax:binary([
+                                                                        erl_syntax:binary_field(
+                                                                            erl_syntax:string(
+                                                                                "One or more parameters failed validation."
+                                                                            )
+                                                                        )
+                                                                    ]),
+                                                                    erl_syntax:list([
+                                                                        erl_syntax:application(
+                                                                            erl_syntax:atom(
+                                                                                erf_problem_details
+                                                                            ),
+                                                                            erl_syntax:atom(
+                                                                                validation_detail
+                                                                            ),
+                                                                            [
+                                                                                erl_syntax:application(
+                                                                                    erl_syntax:atom(
+                                                                                        erlang
+                                                                                    ),
+                                                                                    erl_syntax:atom(
+                                                                                        atom_to_binary
+                                                                                    ),
+                                                                                    [
+                                                                                        erl_syntax:variable(
+                                                                                            'SchemaPath'
+                                                                                        )
+                                                                                    ]
+                                                                                ),
+                                                                                erl_syntax:atom(
+                                                                                    'body'
+                                                                                ),
+                                                                                erl_syntax:variable(
+                                                                                    'Description'
+                                                                                )
+                                                                            ]
+                                                                        )
+                                                                    ])
+                                                                ]
                                                             )
-                                                        ),
-                                                        erl_syntax:map_field_assoc(
-                                                            erl_syntax:binary([
-                                                                erl_syntax:binary_field(
-                                                                    erl_syntax:string("description")
-                                                                )
-                                                            ]),
-                                                            erl_syntax:variable('Description')
-                                                        )
-                                                    ])
+                                                        ]
+                                                    )
                                                 ]
                                             )
                                         ]
@@ -733,17 +773,20 @@ is_valid_request(RawParameters, Request) ->
         erl_syntax:atom('andalso'),
         [
             erl_syntax:list(
-                [ erl_syntax:tuple([
-                    erl_syntax:fun_expr([
-                        erl_syntax:clause(
-                            none,
-                            [
-                                Condition
-                            ]
-                        )
-                    ]),
-                    erl_syntax:list([])
-                ]) || Condition <- [RequestBody | Parameters]]
+                [
+                    erl_syntax:tuple([
+                        erl_syntax:fun_expr([
+                            erl_syntax:clause(
+                                none,
+                                [
+                                    Condition
+                                ]
+                            )
+                        ]),
+                        erl_syntax:list([])
+                    ])
+                 || Condition <- [RequestBody | Parameters]
+                ]
             )
         ]
     ).

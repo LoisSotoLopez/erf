@@ -16,7 +16,8 @@
 %%% EXTERNAL EXPORTS
 -export([
     to_pascal_case/1,
-    to_snake_case/1
+    to_snake_case/1,
+    binarize_atoms/1
 ]).
 
 %%%-----------------------------------------------------------------------------
@@ -47,6 +48,30 @@ to_snake_case([C | Rest]) when C >= $A andalso C =< $Z ->
     to_snake_case(Rest, [C + 32]);
 to_snake_case([_C | Rest]) ->
     to_snake_case(Rest).
+
+-spec binarize_atoms(Map) -> Resp when
+    Map :: map(),
+    Resp :: map().
+binarize_atoms(Map) when is_map(Map) ->
+    RecursiveFun = fun
+        R(V) when is_map(V) -> binarize_atoms(V);
+        R(V) when is_list(V) ->
+            lists:map(R, V);
+        R(V) when is_atom(V) ->
+            erlang:atom_to_binary(V);
+        R(V) ->
+            V
+    end,
+    maps:fold(
+        fun
+            (K, V, Acc) when is_atom(K) ->
+                maps:put(atom_to_binary(K), RecursiveFun(V), Acc);
+            (K, V, Acc) ->
+                maps:put(K, V, Acc)
+        end,
+        #{},
+        Map
+    ).
 
 %%%-----------------------------------------------------------------------------
 %%% INTERNAL FUNCTIONS
