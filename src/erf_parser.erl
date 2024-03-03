@@ -31,6 +31,7 @@
     ref := ref(),
     required := boolean()
 }.
+-type content_type() :: binary().
 -type endpoint() :: #{
     path := path(),
     parameters := [parameter()],
@@ -57,18 +58,19 @@
 -type path() :: binary().
 -type ref() :: binary().
 -type request() :: #{
-    body := body()
+    body := #{content_type() => body()}
 }.
 -type response() :: #{
-    body := body()
+    body := #{content_type() => body()}
 }.
--type schema() :: ndto:schema().
+-type schema() :: ndto:schema() | {content_type(), ndto:schema()}.
 -type status_code() :: 100..599.
 
 %%% TYPE EXPORTS
 -export_type([
     api/0,
     body/0,
+    content_type/0,
     endpoint/0,
     method/0,
     operation/0,

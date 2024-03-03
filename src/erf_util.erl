@@ -65,7 +65,7 @@ binarize_atoms(Map) when is_map(Map) ->
     maps:fold(
         fun
             (K, V, Acc) when is_atom(K) ->
-                maps:put(atom_to_binary(K), RecursiveFun(V), Acc);
+                maps:put(erlang:atom_to_binary(K), RecursiveFun(V), Acc);
             (K, V, Acc) ->
                 maps:put(K, V, Acc)
         end,

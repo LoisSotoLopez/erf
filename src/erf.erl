@@ -255,9 +255,13 @@ init([Name, RawConf]) ->
     Reason :: term().
 build_dtos([]) ->
     ok;
+build_dtos([{Ref, [{_ContentType, Schema}]} | Schemas]) ->
+    build_dtos([{Ref, Schema} | Schemas]);
 build_dtos([{Ref, Schema} | Schemas]) ->
     Name = erlang:binary_to_atom(Ref),
     DTO = ndto:generate(Name, Schema),
+    io:format("Schema is ~p~n", [Schema]),
+    file:write_file(Name, erl_prettypr:format(DTO)),
     case ndto:load(DTO) of
         ok ->
             build_dtos(Schemas);

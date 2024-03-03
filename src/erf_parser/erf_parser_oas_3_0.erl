@@ -400,7 +400,7 @@ parse_parameter(#{<<"schema">> := RawSchema} = RawParameter, #{namespace := Name
     OAS :: spec(),
     CTX :: ctx(),
     Result :: {RequestBody, ExtraSchemas, NewCTX},
-    RequestBody :: #{schema := erf_parser:schema(), required := boolean()},
+    RequestBody :: #{schema := [{erf_parser:content_type(), erf_parser:schema()}], required := boolean()},
     ExtraSchemas :: [{erf_parser:ref(), erf_parser:schema()}],
     NewCTX :: ctx().
 parse_request_body(#{<<"$ref">> := Ref}, CTX) ->
@@ -408,11 +408,11 @@ parse_request_body(#{<<"$ref">> := Ref}, CTX) ->
     parse_request_body(RefOAS, RefCTX);
 parse_request_body(#{<<"content">> := Content} = ReqBody, CTX) ->
     Required = maps:get(<<"required">>, ReqBody, false),
-    {AnyOf, ExtraSchemas, NewCTX} = lists:foldl(
-        fun({_MediaType, #{<<"schema">> := RawSchema}}, {AnyOfAcc, ExtraSchemasAcc, CTXAcc}) ->
+    {PerContentTypeSchemas, ExtraSchemas, NewCTX} = lists:foldl(
+        fun({ContentType, #{<<"schema">> := RawSchema}}, {SchemaAcc, ExtraSchemasAcc, CTXAcc}) ->
             {Schema, NewExtraSchemas, SchemaCTX} = parse_schemas(RawSchema, CTXAcc),
             {
-                [Schema | AnyOfAcc],
+                [{ContentType, Schema} | SchemaAcc],
                 NewExtraSchemas ++ ExtraSchemasAcc,
                 CTXAcc#{
                     resolved => maps:get(resolved, SchemaCTX)
@@ -422,9 +422,8 @@ parse_request_body(#{<<"content">> := Content} = ReqBody, CTX) ->
         {[], [], CTX},
         maps:to_list(Content)
     ),
-    RequestBodySchema = #{any_of => AnyOf},
     RequestBody = #{
-        schema => RequestBodySchema,
+        schema => PerContentTypeSchemas,
         required => Required
     },
     {RequestBody, ExtraSchemas, NewCTX};
